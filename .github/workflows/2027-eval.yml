@@ -1,0 +1,79 @@
+name: 2027 eval
+on:
+  pull_request:
+    types: [labeled, synchronize, opened, reopened]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  pull-requests: write
+  statuses: write
+  deployments: read
+  contents: read
+
+env:
+  # https://2027.dev/evals/e2b.dev/prompts/8cfeb0d4-6623-471a-b93a-e628d0200622
+  # "Getting Started: Browser Login" — agent spins up a sandbox and logs into
+  # the e2b dashboard via browser to obtain an API key.
+  PROMPT_ID: 8cfeb0d4-6623-471a-b93a-e628d0200622
+
+jobs:
+  eval:
+    if: "contains(github.event.pull_request.labels.*.name, 'trigger: preview')"
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+      - name: Wait for Vercel preview deployment on this SHA
+        id: preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          # Vercel's GitHub integration creates a "Preview" deployment per push
+          # and posts a deployment_status carrying environment_url once it's live
+          # (the same signal preview.yml keys off). Poll the deployments API for
+          # this SHA until a Preview deployment reports success with a URL, or
+          # hard-fails. success wins, failure/error aborts, else keep polling.
+          for i in $(seq 1 60); do
+            IDS=$(gh api "repos/$GITHUB_REPOSITORY/deployments?sha=$SHA&per_page=100" \
+              --jq '.[] | select(.environment | test("[Pp]review")) | .id')
+            for id in $IDS; do
+              STATUS=$(gh api "repos/$GITHUB_REPOSITORY/deployments/$id/statuses?per_page=100" \
+                --jq 'first(.[] | {state, url: .environment_url}) // empty')
+              STATE=$(echo "$STATUS" | jq -r '.state // empty')
+              URL=$(echo "$STATUS" | jq -r '.url // empty')
+              case "$STATE" in
+                success)
+                  if [ -n "$URL" ] && [ "$URL" != "null" ]; then
+                    echo "Preview ready: $URL"
+                    echo "url=$URL" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+                  ;;
+                failure|error)
+                  echo "::error::Vercel preview deployment $id reported '$STATE' on $SHA — aborting eval"
+                  exit 1
+                  ;;
+              esac
+            done
+            echo "waiting for Vercel preview on $SHA (attempt $i/60)..."
+            sleep 20
+          done
+          echo "::error::Timed out waiting for a successful Vercel preview deployment on $SHA"
+          exit 1
+
+      - name: Run 2027 eval
+        # team2027/evals-action@v0.7.0 — SHA-pinned per GitHub's hardening
+        # guidance for third-party actions that handle secrets.
+        uses: team2027/evals-action@f322589b36320fcbc0ea4756686d240bc7fcda88
+        with:
+          api-key: ${{ secrets.EVALS_API_KEY }}
+          prompt-id: ${{ env.PROMPT_ID }}
+          # Rewrite the canonical dashboard host to this PR's preview build so the
+          # browser-login flow runs against the preview, not production.
+          url-map: |
+            { "e2b.dev": "${{ steps.preview.outputs.url }}" }
+          wait-timeout-minutes: 60
