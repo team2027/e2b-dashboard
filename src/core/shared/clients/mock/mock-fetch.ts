@@ -20,7 +20,7 @@ const mockApiKeys: Array<{
     mask: {
       prefix: API_KEY_PREFIX,
       valueLength: 44,
-      maskedValuePrefix: `${API_KEY_PREFIX}${'a'.repeat(4)}`,
+      maskedValuePrefix: 'a'.repeat(4),
       maskedValueSuffix: 'a'.repeat(4),
     },
   },
@@ -77,7 +77,10 @@ export function mockFetch(request: MockRequest): Promise<Response> {
       mask: {
         prefix: API_KEY_PREFIX,
         valueLength: keyValue.length,
-        maskedValuePrefix: `${API_KEY_PREFIX}${keyValue.slice(API_KEY_PREFIX.length, API_KEY_PREFIX.length + 4)}`,
+        maskedValuePrefix: keyValue.slice(
+          API_KEY_PREFIX.length,
+          API_KEY_PREFIX.length + 4
+        ),
         maskedValueSuffix: keyValue.slice(-4),
       },
     }
