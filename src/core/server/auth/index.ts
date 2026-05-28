@@ -1,7 +1,7 @@
 import 'server-only'
 
 import type { NextRequest, NextResponse } from 'next/server'
-import { USE_MOCK_DATA, isOryAuthEnabled } from '@/configs/flags'
+import { isOryAuthEnabled, USE_MOCK_DATA } from '@/configs/flags'
 import type { AuthAdmin } from './admin'
 import { mockAuthAdmin } from './mock/admin'
 import {

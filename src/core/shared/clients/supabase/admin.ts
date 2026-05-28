@@ -23,11 +23,16 @@ function createSupabaseAdmin() {
 
 let _adminInstance: ReturnType<typeof createSupabaseAdmin> | null = null
 
-export const supabaseAdmin = new Proxy({} as ReturnType<typeof createSupabaseAdmin>, {
-  get(_target, prop) {
-    if (!_adminInstance) {
-      _adminInstance = createSupabaseAdmin()
-    }
-    return (_adminInstance as unknown as Record<string | symbol, unknown>)[prop]
-  },
-})
+export const supabaseAdmin = new Proxy(
+  {} as ReturnType<typeof createSupabaseAdmin>,
+  {
+    get(_target, prop) {
+      if (!_adminInstance) {
+        _adminInstance = createSupabaseAdmin()
+      }
+      return (_adminInstance as unknown as Record<string | symbol, unknown>)[
+        prop
+      ]
+    },
+  }
+)

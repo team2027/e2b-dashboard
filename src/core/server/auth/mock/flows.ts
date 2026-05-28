@@ -8,10 +8,7 @@ export const mockAuthFlows = {
     await writeMockSession({ id, email, providers: ['email'] })
   },
 
-  async signInWithProvider(
-    email: string,
-    provider: string
-  ): Promise<void> {
+  async signInWithProvider(email: string, provider: string): Promise<void> {
     const id = await emailToMockUserId(email)
     await writeMockSession({ id, email, providers: [provider] })
   },

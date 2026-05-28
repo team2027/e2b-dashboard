@@ -8,7 +8,12 @@ const mockApiKeys: Array<{
   createdAt: string
   createdBy: null
   lastUsed: null
-  mask: { prefix: string; valueLength: number; maskedValuePrefix: string; maskedValueSuffix: string }
+  mask: {
+    prefix: string
+    valueLength: number
+    maskedValuePrefix: string
+    maskedValueSuffix: string
+  }
 }> = [
   {
     id: MOCK_KEY_ID,
@@ -31,7 +36,9 @@ const warnedRoutes = new Set<string>()
 function randomHex(length: number): string {
   const bytes = new Uint8Array(Math.ceil(length / 2))
   crypto.getRandomValues(bytes)
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('').slice(0, length)
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0'))
+    .join('')
+    .slice(0, length)
 }
 
 function json(body: unknown, status = 200): Response {
@@ -151,16 +158,30 @@ export function mockFetch(request: MockRequest): Promise<Response> {
 
   // GET /teams/{teamID}/metrics/max
   if (method === 'GET' && /^\/teams\/[^/]+\/metrics\/max$/.test(pathname)) {
-    return Promise.resolve(json({ value: 0, timestampUnix: Math.floor(Date.now() / 1000), metric: 'concurrent_sandboxes' }))
+    return Promise.resolve(
+      json({
+        value: 0,
+        timestampUnix: Math.floor(Date.now() / 1000),
+        metric: 'concurrent_sandboxes',
+      })
+    )
   }
 
   // GET /templates/{templateID}/builds/{buildID}/status
-  if (method === 'GET' && /^\/templates\/[^/]+\/builds\/[^/]+\/status$/.test(pathname)) {
-    return Promise.resolve(json({ status: 'success', logs: [], envdVersion: '0.1.0' }))
+  if (
+    method === 'GET' &&
+    /^\/templates\/[^/]+\/builds\/[^/]+\/status$/.test(pathname)
+  ) {
+    return Promise.resolve(
+      json({ status: 'success', logs: [], envdVersion: '0.1.0' })
+    )
   }
 
   // GET /templates/{templateID}/builds/{buildID}/logs
-  if (method === 'GET' && /^\/templates\/[^/]+\/builds\/[^/]+\/logs$/.test(pathname)) {
+  if (
+    method === 'GET' &&
+    /^\/templates\/[^/]+\/builds\/[^/]+\/logs$/.test(pathname)
+  ) {
     return Promise.resolve(json({ logs: [], isFinished: true }))
   }
 
@@ -230,13 +251,18 @@ export function mockFetch(request: MockRequest): Promise<Response> {
   }
 
   // DELETE /teams/{teamID}/members/{userId}
-  if (method === 'DELETE' && /^\/teams\/[^/]+\/members\/[^/]+$/.test(pathname)) {
+  if (
+    method === 'DELETE' &&
+    /^\/teams\/[^/]+\/members\/[^/]+$/.test(pathname)
+  ) {
     return Promise.resolve(noContent(204))
   }
 
   // PATCH /teams/{teamID}
   if (method === 'PATCH' && /^\/teams\/[^/]+$/.test(pathname)) {
-    return Promise.resolve(json({ id: MOCK_TEAM_ID, name: 'Mock Team', profilePictureUrl: null }))
+    return Promise.resolve(
+      json({ id: MOCK_TEAM_ID, name: 'Mock Team', profilePictureUrl: null })
+    )
   }
 
   // GET /builds
@@ -265,16 +291,26 @@ export function mockFetch(request: MockRequest): Promise<Response> {
   }
 
   // admin bootstrap
-  if (method === 'POST' && /^\/admin\/users\/[^/]+\/bootstrap$/.test(pathname)) {
+  if (
+    method === 'POST' &&
+    /^\/admin\/users\/[^/]+\/bootstrap$/.test(pathname)
+  ) {
     return Promise.resolve(json({ id: MOCK_TEAM_ID, slug: MOCK_TEAM_SLUG }))
   }
 
   // unmatched — warn once, return safe default
   if (!warnedRoutes.has(key)) {
     warnedRoutes.add(key)
-    console.warn(`[mock-fetch] unmatched route: ${key} — returning empty default`)
+    console.warn(
+      `[mock-fetch] unmatched route: ${key} — returning empty default`
+    )
   }
 
-  const isCollectionPath = !pathname.split('/').pop()?.includes('-') && !pathname.split('/').pop()?.match(/^[0-9a-f-]{36}$/)
+  const isCollectionPath =
+    !pathname.split('/').pop()?.includes('-') &&
+    !pathname
+      .split('/')
+      .pop()
+      ?.match(/^[0-9a-f-]{36}$/)
   return Promise.resolve(json(isCollectionPath ? [] : {}))
 }

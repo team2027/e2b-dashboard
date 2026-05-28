@@ -1,9 +1,9 @@
 import createClient from 'openapi-fetch'
 import { USE_MOCK_DATA } from '@/configs/flags'
+import { mockFetch } from '@/core/shared/clients/mock/mock-fetch'
 import type { paths as ArgusPaths } from '@/core/shared/contracts/argus-api.types'
 import type { paths as DashboardPaths } from '@/core/shared/contracts/dashboard-api.types'
 import type { paths as InfraPaths } from '@/core/shared/contracts/infra-api.types'
-import { mockFetch } from '@/core/shared/clients/mock/mock-fetch'
 
 type CombinedPaths = InfraPaths & ArgusPaths
 
