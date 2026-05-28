@@ -1,5 +1,5 @@
-import { type HTMLAttributes } from 'react'
-import { IconBaseProps } from 'react-icons/lib'
+import type { HTMLAttributes } from 'react'
+import type { IconBaseProps } from 'react-icons/lib'
 import { cn } from '@/lib/utils'
 import { type Icon, TerminalCustomIcon } from '@/ui/primitives/icons'
 

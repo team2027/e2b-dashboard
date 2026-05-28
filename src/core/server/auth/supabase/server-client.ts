@@ -6,7 +6,7 @@ import {
   serializeCookieHeader,
 } from '@supabase/ssr'
 import type { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/core/shared/clients/supabase/server'
+import type { createClient } from '@/core/shared/clients/supabase/server'
 
 type SupabaseAuthClient = Awaited<ReturnType<typeof createClient>>['auth']
 

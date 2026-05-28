@@ -1,6 +1,6 @@
 'use client'
 
-import { ClipboardEvent } from 'react'
+import type { ClipboardEvent } from 'react'
 import { useDashboard } from '@/features/dashboard/context'
 import { formatDate } from '@/lib/utils/formatting'
 
