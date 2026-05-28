@@ -12,6 +12,7 @@ const {
 } = vi.hoisted(() => ({
   mockFlags: {
     enableUserBootstrap: true,
+    useMockData: false,
   },
   mockCookieStore: {
     get: vi.fn(),
@@ -38,6 +39,9 @@ vi.mock('@/core/modules/users/admin-repository.server', () => ({
 vi.mock('@/configs/flags', () => ({
   get ENABLE_USER_BOOTSTRAP() {
     return mockFlags.enableUserBootstrap
+  },
+  get USE_MOCK_DATA() {
+    return mockFlags.useMockData
   },
 }))
 
