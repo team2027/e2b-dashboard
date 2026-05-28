@@ -4,12 +4,13 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { returnValidationErrors } from 'next-safe-action'
 import { z } from 'zod'
-import { CAPTCHA_REQUIRED_SERVER } from '@/configs/flags'
+import { CAPTCHA_REQUIRED_SERVER, USE_MOCK_DATA } from '@/configs/flags'
 import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
 import { USER_MESSAGES } from '@/configs/user-messages'
 import { actionClient } from '@/core/server/actions/client'
 import { returnServerError } from '@/core/server/actions/utils'
 import { auth } from '@/core/server/auth'
+import { mockAuthFlows } from '@/core/server/auth/mock/flows'
 import { supabaseAuthFlows } from '@/core/server/auth/supabase/flows'
 import {
   forgotPasswordSchema,
@@ -44,6 +45,8 @@ async function validateCaptcha(captchaToken: string | undefined) {
 }
 
 async function checkAuthProviderHealth(): Promise<boolean> {
+  if (USE_MOCK_DATA) return true
+
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -110,6 +113,14 @@ export const signInWithOAuthAction = actionClient
   .metadata({ actionName: 'signInWithOAuth' })
   .action(async ({ parsedInput }) => {
     const { provider, returnTo } = parsedInput
+
+    if (USE_MOCK_DATA) {
+      await mockAuthFlows.signInWithProvider(
+        `mock-${provider}@example.com`,
+        provider
+      )
+      throw redirect(returnTo || PROTECTED_URLS.DASHBOARD)
+    }
 
     const isHealthy = await checkAuthProviderHealth()
     if (!isHealthy) {
@@ -178,6 +189,11 @@ export const signUpAction = actionClient
     async ({
       parsedInput: { email, password, returnTo = '', captchaToken },
     }) => {
+      if (USE_MOCK_DATA) {
+        await mockAuthFlows.signIn(email)
+        throw redirect(returnTo || PROTECTED_URLS.DASHBOARD)
+      }
+
       const captchaError = await validateCaptcha(captchaToken)
       if (captchaError) return captchaError
 
@@ -277,6 +293,11 @@ export const signInAction = actionClient
   .schema(signInSchema)
   .metadata({ actionName: 'signInWithEmailAndPassword' })
   .action(async ({ parsedInput: { email, password, returnTo = '' } }) => {
+    if (USE_MOCK_DATA) {
+      await mockAuthFlows.signIn(email)
+      throw redirect(returnTo || PROTECTED_URLS.DASHBOARD)
+    }
+
     const isHealthy = await checkAuthProviderHealth()
     if (!isHealthy) {
       const queryParams = returnTo ? { returnTo } : undefined
@@ -330,6 +351,8 @@ export const forgotPasswordAction = actionClient
   .schema(forgotPasswordSchema)
   .metadata({ actionName: 'forgotPassword' })
   .action(async ({ parsedInput: { email } }) => {
+    if (USE_MOCK_DATA) return
+
     const isHealthy = await checkAuthProviderHealth()
     if (!isHealthy) {
       throw encodedRedirect(

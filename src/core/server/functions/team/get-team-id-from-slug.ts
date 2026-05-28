@@ -1,6 +1,7 @@
 import 'server-only'
 
 import { CACHE_TAGS } from '@/configs/cache'
+import { USE_MOCK_DATA } from '@/configs/flags'
 import { createUserTeamsRepository } from '@/core/modules/teams/user-teams-repository.server'
 import { l } from '@/core/shared/clients/logger/logger'
 import { err, ok, type RepoResult } from '@/core/shared/result'
@@ -10,6 +11,8 @@ export const getTeamIdFromSlug = async (
   teamSlug: string,
   accessToken: string
 ): Promise<RepoResult<string | null>> => {
+  if (USE_MOCK_DATA) return ok('mock-team-id')
+
   if (!TeamSlugSchema.safeParse(teamSlug).success) {
     l.warn(
       {

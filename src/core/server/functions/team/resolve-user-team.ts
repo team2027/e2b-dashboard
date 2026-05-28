@@ -2,16 +2,20 @@ import 'server-only'
 
 import { cookies } from 'next/headers'
 import { COOKIE_KEYS } from '@/configs/cookies'
-import { ENABLE_USER_BOOTSTRAP } from '@/configs/flags'
+import { ENABLE_USER_BOOTSTRAP, USE_MOCK_DATA } from '@/configs/flags'
 import type { ResolvedTeam } from '@/core/modules/teams/models'
 import { createUserTeamsRepository } from '@/core/modules/teams/user-teams-repository.server'
 import { createAdminUsersRepository } from '@/core/modules/users/admin-repository.server'
 import { l } from '@/core/shared/clients/logger/logger'
 
+const MOCK_TEAM: ResolvedTeam = { id: 'mock-team-id', slug: 'mock-team' }
+
 export async function resolveUserTeam(
   userId: string,
   accessToken: string
 ): Promise<ResolvedTeam | null> {
+  if (USE_MOCK_DATA) return MOCK_TEAM
+
   const cookieStore = await cookies()
   const userTeamsRepository = createUserTeamsRepository({
     accessToken,

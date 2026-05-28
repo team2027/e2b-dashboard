@@ -3,6 +3,7 @@ import { fileTypeFromBuffer } from 'file-type'
 import { revalidatePath } from 'next/cache'
 import { after } from 'next/server'
 import { z } from 'zod'
+import { USE_MOCK_DATA } from '@/configs/flags'
 import { createKeysRepository } from '@/core/modules/keys/repository.server'
 import { CreateApiKeySchema } from '@/core/modules/keys/schemas'
 import {
@@ -26,6 +27,30 @@ import {
 import { l, serializeErrorForLog } from '@/core/shared/clients/logger/logger'
 import { deleteFile, getFiles, uploadFile } from '@/core/shared/clients/storage'
 import { FileSchema } from '@/core/shared/schemas/file'
+
+const MOCK_TEAM_LIST = [
+  {
+    id: 'mock-team-id',
+    name: 'Mock Team',
+    slug: 'mock-team',
+    tier: 'hobby',
+    email: 'mock@example.com',
+    isDefault: true,
+    isBlocked: false,
+    isBanned: false,
+    blockedReason: null,
+    createdAt: '2024-01-01T00:00:00Z',
+    profilePictureUrl: null,
+    limits: {
+      maxLengthHours: 24,
+      concurrentSandboxes: 10,
+      concurrentTemplateBuilds: 2,
+      maxVcpu: 4,
+      maxRamMb: 8192,
+      diskMb: 10240,
+    },
+  },
+] as const
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 
@@ -55,6 +80,8 @@ const getStorageFilePath = (folderPath: string, fileName: string) =>
 
 export const teamsRouter = createTRPCRouter({
   list: userTeamsRepositoryProcedure.query(async ({ ctx }) => {
+    if (USE_MOCK_DATA) return [...MOCK_TEAM_LIST]
+
     const teamsResult = await ctx.userTeamsRepository.listUserTeams()
 
     if (!teamsResult.ok) {

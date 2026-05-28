@@ -1,8 +1,14 @@
 import 'server-only'
 
 import type { NextRequest, NextResponse } from 'next/server'
-import { isOryAuthEnabled } from '@/configs/flags'
+import { USE_MOCK_DATA, isOryAuthEnabled } from '@/configs/flags'
 import type { AuthAdmin } from './admin'
+import { mockAuthAdmin } from './mock/admin'
+import {
+  createMockAuthForHeaders,
+  createMockAuthForProxy,
+  createMockAuthProvider,
+} from './mock/provider'
 import { oryAuthAdmin } from './ory/admin'
 import {
   createOryAuthForHeaders,
@@ -17,24 +23,30 @@ import {
   SupabaseAuthProvider,
 } from './supabase/provider'
 
-export const auth: AuthProvider = isOryAuthEnabled()
-  ? new OryHostedAuthProvider()
-  : new SupabaseAuthProvider()
+export const auth: AuthProvider = USE_MOCK_DATA
+  ? createMockAuthProvider()
+  : isOryAuthEnabled()
+    ? new OryHostedAuthProvider()
+    : new SupabaseAuthProvider()
 
-export const authAdmin: AuthAdmin = isOryAuthEnabled()
-  ? oryAuthAdmin
-  : supabaseAuthAdmin
+export const authAdmin: AuthAdmin = USE_MOCK_DATA
+  ? mockAuthAdmin
+  : isOryAuthEnabled()
+    ? oryAuthAdmin
+    : supabaseAuthAdmin
 
 export function createAuthForProxy(
   request: NextRequest,
   response: NextResponse
 ): AuthProvider {
+  if (USE_MOCK_DATA) return createMockAuthForProxy(request, response)
   return isOryAuthEnabled()
     ? createOryAuthForProxy(request, response)
     : createSupabaseAuthForProxy(request, response)
 }
 
 export function createAuthForHeaders(headers: Headers): AuthProvider {
+  if (USE_MOCK_DATA) return createMockAuthForHeaders(headers)
   return isOryAuthEnabled()
     ? createOryAuthForHeaders(headers)
     : createSupabaseAuthForHeaders(headers)

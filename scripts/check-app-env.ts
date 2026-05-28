@@ -1,11 +1,25 @@
 import { loadEnvConfig } from '@next/env'
+import { z } from 'zod'
 import { clientSchema, serverSchema, validateEnv } from '../src/lib/env'
 
 const projectDir = process.cwd()
 loadEnvConfig(projectDir)
 
-const schema = serverSchema
-  .merge(clientSchema)
+const isMockMode = process.env.NEXT_PUBLIC_MOCK_DATA === '1'
+
+const mockRelaxedServerSchema = serverSchema.extend({
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+})
+const mockRelaxedClientSchema = clientSchema.extend({
+  NEXT_PUBLIC_SUPABASE_URL: z.url().optional(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
+})
+
+const baseSchema = isMockMode
+  ? mockRelaxedServerSchema.merge(mockRelaxedClientSchema)
+  : serverSchema.merge(clientSchema)
+
+const schema = baseSchema
   .refine(
     (data) => Boolean(data.KV_REST_API_URL) === Boolean(data.KV_REST_API_TOKEN),
     {
