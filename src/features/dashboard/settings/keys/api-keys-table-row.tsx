@@ -41,7 +41,7 @@ export const ApiKeysTableRow = ({ apiKey, onDelete }: ApiKeysTableRowProps) => {
 
   const handleIdCopied = () => {
     posthog.capture('copied API key id')
-    toast(defaultSuccessToast('ID copied to clipboard'))
+    toast(defaultSuccessToast('Key ID copied — this is not the secret key'))
   }
 
   return (
@@ -60,14 +60,17 @@ export const ApiKeysTableRow = ({ apiKey, onDelete }: ApiKeysTableRowProps) => {
         </div>
       </TableCell>
       <TableCell className={tableCellClassName}>
-        <span className="text-fg-tertiary truncate font-mono text-sm tabular-nums">
+        <span
+          className="text-fg-tertiary truncate font-mono text-sm tabular-nums"
+          title="Masked preview — the full secret key is shown only once, when the key is created"
+        >
           {maskedKey}
         </span>
       </TableCell>
       <TableCell className={tableCellClassName}>
         <IdBadge
           id={apiKey.id}
-          copyAriaLabel="Copy full API key ID"
+          copyAriaLabel="Copy key ID — an identifier, not the secret API key"
           onCopied={handleIdCopied}
         />
       </TableCell>

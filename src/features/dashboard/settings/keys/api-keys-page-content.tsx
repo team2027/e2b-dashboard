@@ -113,7 +113,9 @@ export const ApiKeysPageContent = () => {
         <div className="text-fg-tertiary flex flex-col gap-1 text-sm lg:flex-row lg:items-start lg:justify-between">
           <p className="max-w-[520px] leading-[17px] tracking-[-0.16px]">
             These keys authenticate API requests from your team&apos;s
-            applications.
+            applications. The full secret is shown only once, when a key is
+            created — the ID column is an identifier, not the secret key. To get
+            a working key, use Create &amp; copy key.
           </p>
           <Suspense fallback={<Skeleton className="h-4 w-24 border-0" />}>
             <ApiKeysTotalLabel query={query} />
