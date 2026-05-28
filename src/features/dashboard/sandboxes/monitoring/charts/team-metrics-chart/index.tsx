@@ -12,6 +12,7 @@ import {
   GridComponent,
   MarkLineComponent,
   MarkPointComponent,
+  ToolboxComponent,
   TooltipComponent,
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
@@ -39,6 +40,7 @@ echarts.use([
   GridComponent,
   TooltipComponent,
   BrushComponent,
+  ToolboxComponent,
   MarkPointComponent,
   MarkLineComponent,
   AxisPointerComponent,
