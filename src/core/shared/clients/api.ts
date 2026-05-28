@@ -1,7 +1,9 @@
 import createClient from 'openapi-fetch'
+import { USE_MOCK_DATA } from '@/configs/flags'
 import type { paths as ArgusPaths } from '@/core/shared/contracts/argus-api.types'
 import type { paths as DashboardPaths } from '@/core/shared/contracts/dashboard-api.types'
 import type { paths as InfraPaths } from '@/core/shared/contracts/infra-api.types'
+import { mockFetch } from '@/core/shared/clients/mock/mock-fetch'
 
 type CombinedPaths = InfraPaths & ArgusPaths
 
@@ -13,17 +15,18 @@ const DASHBOARD_API_URL =
   process.env.NEXT_PUBLIC_DASHBOARD_API_URL ||
   `https://dashboard-api.${process.env.NEXT_PUBLIC_E2B_DOMAIN}`
 
+const realFetch = ({ url, headers, body, method, ...options }: Request) =>
+  fetch(url, {
+    headers,
+    body,
+    method,
+    duplex: body ? 'half' : undefined,
+    ...options,
+  } as RequestInit)
+
 export const infra = createClient<CombinedPaths>({
   baseUrl: INFRA_API_URL,
-  fetch: ({ url, headers, body, method, ...options }) => {
-    return fetch(url, {
-      headers,
-      body,
-      method,
-      duplex: body ? 'half' : undefined,
-      ...options,
-    } as RequestInit)
-  },
+  fetch: USE_MOCK_DATA ? mockFetch : realFetch,
   querySerializer: {
     array: { style: 'form', explode: false },
   },
@@ -31,15 +34,7 @@ export const infra = createClient<CombinedPaths>({
 
 export const api = createClient<DashboardPaths>({
   baseUrl: DASHBOARD_API_URL,
-  fetch: ({ url, headers, body, method, ...options }) => {
-    return fetch(url, {
-      headers,
-      body,
-      method,
-      duplex: body ? 'half' : undefined,
-      ...options,
-    } as RequestInit)
-  },
+  fetch: USE_MOCK_DATA ? mockFetch : realFetch,
   querySerializer: {
     array: { style: 'form', explode: false },
   },
