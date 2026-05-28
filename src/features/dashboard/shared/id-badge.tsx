@@ -16,12 +16,19 @@ interface IdBadgeProps {
   id: string
   copyAriaLabel?: string
   onCopied?: () => void
+  /**
+   * When false, render the id as a plain, selectable badge without a copy
+   * button — used where the id is a reference value that shouldn't compete
+   * with a more important copyable token (e.g. the secret API key).
+   */
+  copyable?: boolean
 }
 
 export const IdBadge = ({
   id,
   copyAriaLabel = 'Copy full ID',
   onCopied,
+  copyable = true,
 }: IdBadgeProps) => {
   const [wasCopied, copy] = useClipboard()
   const displayId = getIdBadgeLabel(id)
@@ -36,17 +43,21 @@ export const IdBadge = ({
 
   return (
     <Badge className="bg-bg-highlight text-fg-tertiary h-[18px] gap-[3px] px-1 align-middle prose-label-numeric">
-      <span className="tracking-wider font-mono">{displayId}</span>
-      <Button
-        type="button"
-        variant="quaternary"
-        size="none"
-        className="text-fg-tertiary hover:text-fg h-3.5 w-3.5 shrink-0 active:translate-y-0 [&_svg]:size-3.5"
-        aria-label={copyAriaLabel}
-        onClick={handleCopy}
-      >
-        {wasCopied ? <CheckIcon /> : <CopyIcon />}
-      </Button>
+      <span className="tracking-wider font-mono select-text" title={id}>
+        {displayId}
+      </span>
+      {copyable && (
+        <Button
+          type="button"
+          variant="quaternary"
+          size="none"
+          className="text-fg-tertiary hover:text-fg h-3.5 w-3.5 shrink-0 active:translate-y-0 [&_svg]:size-3.5"
+          aria-label={copyAriaLabel}
+          onClick={handleCopy}
+        >
+          {wasCopied ? <CheckIcon /> : <CopyIcon />}
+        </Button>
+      )}
     </Badge>
   )
 }
