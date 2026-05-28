@@ -1,5 +1,7 @@
 export { ApiKeysPageContent } from './api-keys-page-content'
 export { ApiKeysTable } from './api-keys-table'
 export { ApiKeysTableRow } from './api-keys-table-row'
+export { CreateAndCopyKeyButton } from './create-and-copy-key-button'
 export { CreateApiKeyDialog } from './create-api-key-dialog'
+export { CreatedKeyReveal } from './created-key-reveal'
 export { DeleteApiKeyDialog } from './delete-api-key-dialog'
