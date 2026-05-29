@@ -12,6 +12,7 @@ import { Input } from '@/ui/primitives/input'
 import { Skeleton } from '@/ui/primitives/skeleton'
 import { ApiKeysTable } from './api-keys-table'
 import { matchesApiKeySearch } from './api-keys-utils'
+import { CreateAndCopyKeyButton } from './create-and-copy-key-button'
 import { CreateApiKeyDialog } from './create-api-key-dialog'
 
 const useApiKeysQuery = () => {
@@ -102,14 +103,19 @@ export const ApiKeysPageContent = () => {
     <div className="flex w-full flex-col gap-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <ApiKeysSearchField onChange={setQuery} value={query} />
-        <CreateApiKeyDialog />
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:self-start">
+          <CreateAndCopyKeyButton />
+          <CreateApiKeyDialog />
+        </div>
       </div>
 
       <CatchErrorBoundary classNames={{ wrapper: 'w-full' }}>
         <div className="text-fg-tertiary flex flex-col gap-1 text-sm lg:flex-row lg:items-start lg:justify-between">
           <p className="max-w-[520px] leading-[17px] tracking-[-0.16px]">
             These keys authenticate API requests from your team&apos;s
-            applications.
+            applications. The full secret is shown only once, when a key is
+            created — the ID column is an identifier, not the secret key. To get
+            a working key, use Create &amp; copy key.
           </p>
           <Suspense fallback={<Skeleton className="h-4 w-24 border-0" />}>
             <ApiKeysTotalLabel query={query} />

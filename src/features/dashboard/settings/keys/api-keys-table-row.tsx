@@ -1,10 +1,8 @@
 'use client'
 
-import { usePostHog } from 'posthog-js/react'
 import { CLI_GENERATED_KEY_NAME } from '@/configs/api'
 import type { TeamAPIKey } from '@/core/modules/keys/models'
 import { IdBadge, UserAvatar } from '@/features/dashboard/shared'
-import { defaultSuccessToast, useToast } from '@/lib/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { formatDate, formatUTCTimestamp } from '@/lib/utils/formatting'
 import { E2BLogo } from '@/ui/brand'
@@ -26,9 +24,6 @@ interface ApiKeysTableRowProps {
 }
 
 export const ApiKeysTableRow = ({ apiKey, onDelete }: ApiKeysTableRowProps) => {
-  const posthog = usePostHog()
-  const { toast } = useToast()
-
   const addedDate = apiKey.createdAt
     ? (formatDate(new Date(apiKey.createdAt), 'MMM d, yyyy') ?? '—')
     : '—'
@@ -38,11 +33,6 @@ export const ApiKeysTableRow = ({ apiKey, onDelete }: ApiKeysTableRowProps) => {
   const lastUsedLabel = getLastUsedLabel(apiKey)
   const isCliKey = apiKey.name === CLI_GENERATED_KEY_NAME
   const createdByEmail = apiKey.createdBy?.email?.trim() || 'Unknown user'
-
-  const handleIdCopied = () => {
-    posthog.capture('copied API key id')
-    toast(defaultSuccessToast('ID copied to clipboard'))
-  }
 
   return (
     <TableRow>
@@ -60,16 +50,15 @@ export const ApiKeysTableRow = ({ apiKey, onDelete }: ApiKeysTableRowProps) => {
         </div>
       </TableCell>
       <TableCell className={tableCellClassName}>
-        <span className="text-fg-tertiary truncate font-mono text-sm tabular-nums">
+        <span
+          className="text-fg-tertiary truncate font-mono text-sm tabular-nums"
+          title="Masked preview — the full secret key is shown only once, when the key is created"
+        >
           {maskedKey}
         </span>
       </TableCell>
       <TableCell className={tableCellClassName}>
-        <IdBadge
-          id={apiKey.id}
-          copyAriaLabel="Copy full API key ID"
-          onCopied={handleIdCopied}
-        />
+        <IdBadge id={apiKey.id} copyable={false} />
       </TableCell>
       <TableCell className={cn(tableCellClassName, 'text-sm text-fg-tertiary')}>
         {lastUsedAt ? (

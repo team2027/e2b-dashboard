@@ -3,6 +3,7 @@
 import { type FC, type ReactNode, useState } from 'react'
 import type { TeamAPIKey } from '@/core/modules/keys/models'
 import { cn } from '@/lib/utils'
+import HelpTooltip from '@/ui/help-tooltip'
 import { KeyIcon } from '@/ui/primitives/icons'
 import {
   Table,
@@ -16,9 +17,22 @@ import {
 import { ApiKeysTableRow } from './api-keys-table-row'
 import { DeleteApiKeyDialog } from './delete-api-key-dialog'
 
-const ApiKeysTableHead = ({ children }: { children: ReactNode }) => (
+const ApiKeysTableHead = ({
+  children,
+  tooltip,
+}: {
+  children: ReactNode
+  tooltip?: ReactNode
+}) => (
   <TableHead className="h-auto pt-0 pb-2 align-top text-fg-tertiary font-sans! normal-case!">
-    {children}
+    {tooltip ? (
+      <span className="inline-flex items-center gap-1">
+        {children}
+        <HelpTooltip classNames={{ icon: 'size-3' }}>{tooltip}</HelpTooltip>
+      </span>
+    ) : (
+      children
+    )}
   </TableHead>
 )
 
@@ -55,8 +69,12 @@ export const ApiKeysTable: FC<ApiKeysTableProps> = ({
         <TableHeader className="border-b-0">
           <TableRow className="hover:bg-transparent">
             <ApiKeysTableHead>LABEL</ApiKeysTableHead>
-            <ApiKeysTableHead>KEY</ApiKeysTableHead>
-            <ApiKeysTableHead>ID</ApiKeysTableHead>
+            <ApiKeysTableHead tooltip="A masked preview for recognition. The full secret key is shown only once, when the key is created.">
+              KEY
+            </ApiKeysTableHead>
+            <ApiKeysTableHead tooltip="An identifier for this key — not the secret used to authenticate API requests. To get a working key, create a new one.">
+              ID
+            </ApiKeysTableHead>
             <ApiKeysTableHead>LAST USED</ApiKeysTableHead>
             <ApiKeysTableHead>ADDED</ApiKeysTableHead>
           </TableRow>

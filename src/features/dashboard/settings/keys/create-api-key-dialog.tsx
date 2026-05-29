@@ -2,20 +2,17 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { usePostHog } from 'posthog-js/react'
 import { type FC, type ReactNode, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import type { z } from 'zod'
 import { CreateApiKeySchema } from '@/core/modules/keys/schemas'
 import { useDashboard } from '@/features/dashboard/context'
-import { useClipboard } from '@/lib/hooks/use-clipboard'
 import { defaultErrorToast, useToast } from '@/lib/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { useTRPC } from '@/trpc/client'
 import { Button } from '@/ui/primitives/button'
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -29,14 +26,10 @@ import {
   FormItem,
   FormMessage,
 } from '@/ui/primitives/form'
-import {
-  AddIcon,
-  CheckIcon,
-  CopyIcon,
-  WarningIcon,
-} from '@/ui/primitives/icons'
+import { AddIcon } from '@/ui/primitives/icons'
 import { Input } from '@/ui/primitives/input'
 import { Label } from '@/ui/primitives/label'
+import { CreatedKeyReveal } from './created-key-reveal'
 
 type FormValues = z.infer<typeof CreateApiKeySchema>
 
@@ -54,11 +47,9 @@ export const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
   const [createdKey, setCreatedKey] = useState<string | null>(null)
   const [createdName, setCreatedName] = useState<string | null>(null)
 
-  const posthog = usePostHog()
   const { toast } = useToast()
   const trpc = useTRPC()
   const queryClient = useQueryClient()
-  const [copiedReveal, copyReveal] = useClipboard()
 
   const listQueryKey = trpc.teams.listApiKeys.queryOptions({
     teamSlug: team.slug,
@@ -98,11 +89,6 @@ export const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
       setCreatedName(null)
     }
   }
-
-  const successTitle =
-    createdName != null && createdName.length > 0
-      ? `${createdName.toUpperCase()} KEY CREATED`
-      : 'API KEY CREATED'
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -179,69 +165,7 @@ export const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
             </Form>
           </>
         ) : (
-          <>
-            <DialogHeader>
-              <DialogTitle>{successTitle}</DialogTitle>
-              <DialogDescription className="sr-only">
-                Your new API key is shown once. Copy it before closing.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-1">
-                <Input
-                  readOnly
-                  value={createdKey}
-                  className="border-stroke h-9 min-h-0 flex-1 rounded-none border font-mono text-sm"
-                />
-                <Button
-                  type="button"
-                  variant="primary"
-                  className="h-9 shrink-0 gap-1.5 px-3 font-sans normal-case active:translate-y-0"
-                  onClick={() => {
-                    void copyReveal(createdKey)
-                    posthog.capture('copied API key')
-                  }}
-                >
-                  <span
-                    className="inline-flex h-5 w-5 shrink-0 items-center justify-center"
-                    aria-hidden
-                  >
-                    {copiedReveal ? (
-                      <CheckIcon className="size-5" />
-                    ) : (
-                      <CopyIcon className="size-4" />
-                    )}
-                  </span>
-                  Copy
-                </Button>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <div className="bg-accent-warning-bg/90 flex w-fit items-center gap-0.5 py-0.5 pr-1.5 pl-0.5">
-                  <WarningIcon
-                    className="text-accent-warning-highlight size-3 shrink-0"
-                    aria-hidden
-                  />
-                  <span className="text-accent-warning-highlight prose-label uppercase">
-                    Important
-                  </span>
-                </div>
-                <div className="flex items-start justify-between gap-4">
-                  <p className="text-fg prose-body min-w-0 flex-1">
-                    Copy the key now. You won&apos;t be able to view it again.
-                  </p>
-                  <DialogClose asChild>
-                    <Button
-                      type="button"
-                      variant="tertiary"
-                      className="text-fg-tertiary hover:text-fg shrink-0 font-sans text-sm font-medium normal-case"
-                    >
-                      Close
-                    </Button>
-                  </DialogClose>
-                </div>
-              </div>
-            </div>
-          </>
+          <CreatedKeyReveal apiKey={createdKey} keyName={createdName} />
         )}
       </DialogContent>
     </Dialog>
