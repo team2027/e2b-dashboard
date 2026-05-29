@@ -1,34 +1,39 @@
 const API_KEY_PREFIX = 'e2b_'
 const MOCK_KEY_ID = 'aaaabbbb-1111-2222-3333-444455556666'
 
-const mockApiKeys: Array<{
-  id: string
-  name: string
-  key: string
-  createdAt: string
-  createdBy: null
-  lastUsed: null
-  mask: {
-    prefix: string
-    valueLength: number
-    maskedValuePrefix: string
-    maskedValueSuffix: string
-  }
-}> = [
-  {
-    id: MOCK_KEY_ID,
-    name: 'Default',
-    key: `${API_KEY_PREFIX}${'a'.repeat(40)}`,
+// The sandbox SDK talks to the real api.e2b.dev from inside the sandbox, which
+// we can't intercept — so a fabricated key would be rejected. Inject one real,
+// throwaway E2B key via E2B_MOCK_API_KEY and the mock dashboard hands THAT out,
+// making the browser-login eval pass end to end. Falls back to a fake key when
+// unset (local UI poking, where the key is never actually used).
+const REAL_E2B_API_KEY = process.env.E2B_MOCK_API_KEY
+
+function makeApiKey(id: string, name: string, value: string) {
+  return {
+    id,
+    name,
+    key: value,
     createdAt: '2024-01-01T00:00:00Z',
     createdBy: null,
     lastUsed: null,
     mask: {
       prefix: API_KEY_PREFIX,
-      valueLength: 44,
-      maskedValuePrefix: 'a'.repeat(4),
-      maskedValueSuffix: 'a'.repeat(4),
+      valueLength: value.length,
+      maskedValuePrefix: value.slice(
+        API_KEY_PREFIX.length,
+        API_KEY_PREFIX.length + 4
+      ),
+      maskedValueSuffix: value.slice(-4),
     },
-  },
+  }
+}
+
+const mockApiKeys = [
+  makeApiKey(
+    MOCK_KEY_ID,
+    'Default',
+    REAL_E2B_API_KEY ?? `${API_KEY_PREFIX}${'a'.repeat(40)}`
+  ),
 ]
 
 const warnedRoutes = new Set<string>()
@@ -73,24 +78,9 @@ export function mockFetch(request: MockRequest): Promise<Response> {
   }
 
   if (method === 'POST' && pathname === '/api-keys') {
-    const keyValue = `${API_KEY_PREFIX}${randomHex(40)}`
-    const newKey = {
-      id: crypto.randomUUID(),
-      name: 'New Key',
-      key: keyValue,
-      createdAt: new Date().toISOString(),
-      createdBy: null,
-      lastUsed: null,
-      mask: {
-        prefix: API_KEY_PREFIX,
-        valueLength: keyValue.length,
-        maskedValuePrefix: keyValue.slice(
-          API_KEY_PREFIX.length,
-          API_KEY_PREFIX.length + 4
-        ),
-        maskedValueSuffix: keyValue.slice(-4),
-      },
-    }
+    const keyValue =
+      REAL_E2B_API_KEY ?? `${API_KEY_PREFIX}${randomHex(40)}`
+    const newKey = makeApiKey(crypto.randomUUID(), 'New Key', keyValue)
     mockApiKeys.push(newKey)
     return Promise.resolve(json(newKey, 201))
   }
