@@ -31,7 +31,15 @@ const config = {
     turbopackFileSystemCacheForDev: true,
     serverActions: {
       bodySizeLimit: '5mb',
-      ...(MOCK_MODE ? { allowedOrigins: ['e2b.dev', '*.e2b.dev'] } : {}),
+      ...(MOCK_MODE
+        ? {
+            allowedOrigins: [
+              'e2b.dev',
+              '*.e2b.dev',
+              'e2b-*-team2027.vercel.app',
+            ],
+          }
+        : {}),
     },
     authInterrupts: true,
   },
