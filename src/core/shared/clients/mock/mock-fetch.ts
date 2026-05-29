@@ -78,8 +78,7 @@ export function mockFetch(request: MockRequest): Promise<Response> {
   }
 
   if (method === 'POST' && pathname === '/api-keys') {
-    const keyValue =
-      REAL_E2B_API_KEY ?? `${API_KEY_PREFIX}${randomHex(40)}`
+    const keyValue = REAL_E2B_API_KEY ?? `${API_KEY_PREFIX}${randomHex(40)}`
     const newKey = makeApiKey(crypto.randomUUID(), 'New Key', keyValue)
     mockApiKeys.push(newKey)
     return Promise.resolve(json(newKey, 201))
