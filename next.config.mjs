@@ -5,6 +5,12 @@ export const DOCUMENTATION_DOMAIN = 'e2b.mintlify.app'
 
 const browserStub = (file) => path.resolve(process.cwd(), 'stubs', file)
 
+// In mock-mode preview deploys the 2027 eval's url-map serves the dashboard as
+// e2b.dev while the real host is the vercel preview. Next's Server Actions
+// origin check rejects that mismatch, blocking mock login. Whitelist the
+// mapped origin — only in mock mode, so real deploys keep the strict check.
+const MOCK_MODE = process.env.NEXT_PUBLIC_MOCK_DATA === '1'
+
 const browserNodeModuleStubs = {
   crypto: browserStub('crypto.ts'),
   fs: browserStub('fs.ts'),
@@ -25,6 +31,7 @@ const config = {
     turbopackFileSystemCacheForDev: true,
     serverActions: {
       bodySizeLimit: '5mb',
+      ...(MOCK_MODE ? { allowedOrigins: ['e2b.dev', '*.e2b.dev'] } : {}),
     },
     authInterrupts: true,
   },
